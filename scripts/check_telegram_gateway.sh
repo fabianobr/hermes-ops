@@ -16,6 +16,10 @@ has_nonempty_env_key() {
   rg -q "^${key}=.+$" "$ENV_FILE"
 }
 
+find_gateway_processes() {
+  ps -ef | rg '[h]ermes gateway run|[g]ateway run -v|[h]ermes_cli\.main gateway run' || true
+}
+
 echo "== Telegram gateway check =="
 date
 echo
@@ -29,7 +33,16 @@ if hermes gateway status --deep; then
   :
 else
   echo
-  echo "Gateway is not active right now."
+  echo "Hermes gateway status did not report an active gateway."
+fi
+echo
+
+echo "== Gateway process check =="
+gateway_processes="$(find_gateway_processes)"
+if [ -n "$gateway_processes" ]; then
+  echo "$gateway_processes"
+else
+  echo "No gateway process found by ps."
 fi
 echo
 
@@ -66,4 +79,10 @@ fi
 echo
 
 echo "== Pairing state =="
-hermes pairing list
+if hermes pairing list; then
+  :
+else
+  echo
+  echo "Could not read pairing state through Hermes CLI."
+  echo "In restricted sessions this can happen because 'hermes pairing list' may prune expired entries and write to ~/.hermes/pairing."
+fi

@@ -217,3 +217,26 @@ hermes pairing approve telegram <CODE>
   - terminal `pts/1`
 - The live gateway log from that terminal confirms successful Telegram polling connection and a real DM round-trip from `FabianoBR`.
 - Revised conclusion: the earlier `hermes gateway status --deep` result was a false negative for this manually started foreground gateway process.
+
+## User Service Promotion On 2026-06-09 07:25 -03
+- Promoted the Telegram gateway from foreground terminal operation to a user-level systemd service.
+- Ran `hermes gateway install --force` non-interactively with affirmative answers for:
+  - start gateway now
+  - start automatically on login/boot with systemd
+- Hermes created and enabled:
+  - `/home/fabiano/.config/systemd/user/hermes-gateway.service`
+  - symlink under `/home/fabiano/.config/systemd/user/default.target.wants/`
+- The installer reported:
+  - user service installed and enabled
+  - systemd linger enabled
+  - user service started
+- Verified outside the restricted sandbox:
+  - `systemctl --user status hermes-gateway --no-pager` -> `active (running)`
+  - main PID `23036`
+  - command `/home/fabiano/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main gateway run --replace`
+  - `hermes gateway status --deep` -> `User gateway service is running`
+  - `hermes gateway status --deep` -> `Systemd linger is enabled`
+- Updated [scripts/check_telegram_gateway.sh](/home/fabiano/AI/hermes-ops/scripts/check_telegram_gateway.sh) so process detection covers both:
+  - foreground `hermes gateway run`
+  - systemd `python -m hermes_cli.main gateway run --replace`
+- Caveat: inside the restricted Codex sandbox, `systemctl --user` can fail with `Operation not permitted`, so gateway service status must be confirmed from a normal host shell or with escalated host commands.

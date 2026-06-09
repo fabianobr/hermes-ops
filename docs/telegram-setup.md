@@ -6,13 +6,15 @@ Bring Hermes up on Telegram in polling mode first, with host-side changes that a
 ## Current Decision
 - Keep `qwen3-coder:30b` as the Hermes baseline model.
 - Use Telegram in long polling mode first.
-- Do not install the gateway as a persistent service until manual foreground runs are stable.
+- Run the gateway as a user-level systemd service after foreground validation succeeds.
 - Keep Telegram secrets only in `~/.hermes/.env`.
 
 ## Current Host Status
-As of 2026-06-08:
+As of 2026-06-09:
 
-- `hermes gateway status --deep` reports `Gateway is not running`
+- `hermes-gateway.service` is installed as a user systemd service
+- the service is enabled and running
+- systemd linger is enabled, so the user service survives logout
 - the repository architecture already targets Telegram polling first
 - Hermes current host config already includes the `telegram` platform toolset
 - the host `.env` template shows Telegram polling is the default unless `TELEGRAM_WEBHOOK_URL` is set
@@ -63,6 +65,36 @@ For direct-message bring-up, keep the first pass simple:
 - keep `TELEGRAM_ALLOWED_USERS` set
 - leave webhook variables unset so polling remains active
 
+## User Service Operation
+After foreground validation, install and start the user service:
+
+```bash
+hermes gateway install --force
+hermes gateway status --deep
+```
+
+The current service unit is:
+
+```text
+~/.config/systemd/user/hermes-gateway.service
+```
+
+Useful service commands:
+
+```bash
+hermes gateway status --deep
+hermes gateway start
+hermes gateway stop
+hermes gateway restart
+journalctl --user -u hermes-gateway -f
+```
+
+In restricted Codex sessions, the user systemd bus may not be reachable. When that happens, validate from a normal host shell or use process inspection:
+
+```bash
+ps -ef | rg 'hermes_cli.main gateway run|hermes gateway run'
+```
+
 ## Authorization And Pairing
 The current host config uses `approvals.mode: manual`. In practice, that means new gateway users should be treated as requiring operator approval before they are trusted.
 
@@ -101,4 +133,4 @@ The Telegram phase is considered stable when all of these are true:
 - the operator can send a DM to the bot and receive a Hermes response
 - if manual approval is triggered, the operator can approve with the real Telegram pairing code and the user appears in the approved list
 
-Only after that should the project consider `hermes gateway install` or any always-on service workflow.
+The current deployment has passed the foreground smoke test and has been promoted to a user systemd service.

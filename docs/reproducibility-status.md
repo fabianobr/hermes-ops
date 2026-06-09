@@ -295,6 +295,44 @@ Operational conclusion:
 - `hermes gateway status --deep` returned a false negative for this manual foreground run during this session
 - for this environment, process inspection and live gateway logs are more reliable than `gateway status` when the gateway was started manually in another terminal
 
+## Telegram Gateway Service Promotion On 2026-06-09
+The Telegram gateway was promoted from manual foreground operation to a user-level systemd service.
+
+Commands executed:
+
+```bash
+printf 'y\ny\n' | hermes gateway install --force
+```
+
+Installed unit:
+
+```text
+/home/fabiano/.config/systemd/user/hermes-gateway.service
+```
+
+Service unit facts:
+
+- `ExecStart=/home/fabiano/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main gateway run --replace`
+- `WorkingDirectory=/home/fabiano/.hermes`
+- `HERMES_HOME=/home/fabiano/.hermes`
+- `Restart=always`
+- output goes to the user journal
+
+Validation outside the sandbox:
+
+- `systemctl --user status hermes-gateway --no-pager` reports `active (running)`
+- main PID: `23036`
+- command: `/home/fabiano/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main gateway run --replace`
+- `hermes gateway status --deep` reports:
+  - `User gateway service is running`
+  - `Systemd linger is enabled`
+
+Sandbox caveat:
+
+- inside the restricted Codex sandbox, `systemctl --user` and `hermes gateway status --deep` may fail to connect to the user systemd bus and can report a false negative
+- outside the sandbox, the service status is reliable
+- [scripts/check_telegram_gateway.sh](/home/fabiano/AI/hermes-ops/scripts/check_telegram_gateway.sh) now also looks for both manual and systemd gateway process forms
+
 Safety record:
 
 - backup saved before lockout cleanup: [backups/telegram-rate-limits.20260609-pre-unlock.json](/home/fabiano/AI/hermes-ops/backups/telegram-rate-limits.20260609-pre-unlock.json)
