@@ -1,0 +1,51 @@
+# Merge the relevant parts into ~/.hermes/config.yaml on the host.
+# This keeps Hermes on a local OpenAI-compatible endpoint instead of OpenRouter.
+#
+# Validation:
+#   python3 scripts/check_local_backends.py
+
+model:
+  provider: custom
+  default: qwen3-coder:30b
+  base_url: http://127.0.0.1:11434/v1
+  api_key: ''
+
+auxiliary:
+  vision:
+    provider: main
+    model: ''
+    base_url: ''
+  web_extract:
+    provider: main
+    model: ''
+    base_url: ''
+  approval:
+    provider: main
+    model: ''
+    base_url: ''
+  skills_hub:
+    provider: main
+    model: ''
+    base_url: ''
+  mcp:
+    provider: main
+    model: ''
+    base_url: ''
+  triage_specifier:
+    provider: main
+    model: ''
+    base_url: ''
+
+# Optional named endpoints for later expansion:
+#
+# custom_providers:
+#   - name: ollama-local
+#     base_url: http://127.0.0.1:11434/v1
+#     models:
+#       qwen3-coder:30b:
+#         context_length: 32768
+#   - name: lmstudio-local
+#     base_url: http://127.0.0.1:1234/v1
+#     models:
+#       qwen/qwen3-32b:
+#         context_length: 32768

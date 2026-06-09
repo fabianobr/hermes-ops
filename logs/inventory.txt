@@ -1,0 +1,42 @@
+===== Hermes Ops Inventory =====
+Sun Jun  7 13:28:45 -03 2026
+
+===== uname -a =====
+Linux llm5060 7.0.0-22-generic #22-Ubuntu SMP PREEMPT_DYNAMIC Mon May 25 15:54:34 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+
+===== lsb_release -a =====
+/bin/bash: line 12: lsb_release: command not found
+FAILED: lsb_release -a
+
+===== nvidia-smi =====
+/bin/bash: line 15: nvidia-smi: command not found
+FAILED: nvidia-smi
+
+===== free -h =====
+               total        used        free      shared  buff/cache   available
+Mem:            29Gi       9.0Gi       8.8Gi       491Mi        13Gi        21Gi
+Swap:           35Gi          0B        35Gi
+
+===== df -h =====
+df: cannot read table of mounted file systems: Permission denied
+FAILED: df -h
+
+===== uptime =====
+ 13:28:45 up 23 min,  ? user,  load average: 0.29, 0.35, 0.29
+
+===== systemctl status docker =====
+/bin/bash: line 27: /usr/bin/systemctl: Permission denied
+FAILED: systemctl status docker
+
+===== systemctl status ollama =====
+/bin/bash: line 30: /usr/bin/systemctl: Permission denied
+FAILED: systemctl status ollama
+
+===== LM Studio models localhost:1234 =====
+/bin/bash: line 33: curl: command not found
+FAILED: curl localhost:1234/v1/models
+
+===== Ollama tags localhost:11434 =====
+/bin/bash: line 36: curl: command not found
+FAILED: curl localhost:11434/api/tags
+

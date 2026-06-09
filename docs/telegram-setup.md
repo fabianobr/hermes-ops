@@ -1,0 +1,104 @@
+# Hermes Telegram Setup
+
+## Purpose
+Bring Hermes up on Telegram in polling mode first, with host-side changes that are reproducible without storing secrets in this repository.
+
+## Current Decision
+- Keep `qwen3-coder:30b` as the Hermes baseline model.
+- Use Telegram in long polling mode first.
+- Do not install the gateway as a persistent service until manual foreground runs are stable.
+- Keep Telegram secrets only in `~/.hermes/.env`.
+
+## Current Host Status
+As of 2026-06-08:
+
+- `hermes gateway status --deep` reports `Gateway is not running`
+- the repository architecture already targets Telegram polling first
+- Hermes current host config already includes the `telegram` platform toolset
+- the host `.env` template shows Telegram polling is the default unless `TELEGRAM_WEBHOOK_URL` is set
+
+## Required Inputs
+- Telegram bot token from `@BotFather`
+- your Telegram numeric user ID, typically from `@userinfobot`
+- optional target group chat ID and topic/thread ID if you want group use or cron delivery
+
+## Files In This Repository
+- template env block: [config/hermes-telegram.env.example](/home/fabiano/AI/hermes-ops/config/hermes-telegram.env.example)
+- gateway check script: [scripts/check_telegram_gateway.sh](/home/fabiano/AI/hermes-ops/scripts/check_telegram_gateway.sh)
+- continuity notes: [docs/install-notes.md](/home/fabiano/AI/hermes-ops/docs/install-notes.md)
+
+## Host-Side Bring-Up
+1. Validate the baseline model first:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+bash ~/AI/hermes-ops/scripts/validate_hermes_baseline.sh
+```
+
+2. Copy the example values you actually need from [config/hermes-telegram.env.example](/home/fabiano/AI/hermes-ops/config/hermes-telegram.env.example) into `~/.hermes/.env`.
+
+Minimum safe first pass:
+
+```dotenv
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_ALLOWED_USERS=123456789
+```
+
+3. Validate the non-secret gateway state:
+
+```bash
+bash ~/AI/hermes-ops/scripts/check_telegram_gateway.sh
+```
+
+4. Start the gateway in the foreground for the first manual test:
+
+```bash
+hermes gateway run -v
+```
+
+5. Message the bot from Telegram.
+
+For direct-message bring-up, keep the first pass simple:
+- start in DM, not in a group
+- keep `TELEGRAM_ALLOWED_USERS` set
+- leave webhook variables unset so polling remains active
+
+## Authorization And Pairing
+The current host config uses `approvals.mode: manual`. In practice, that means new gateway users should be treated as requiring operator approval before they are trusted.
+
+Operator commands:
+
+```bash
+hermes pairing list
+hermes pairing approve telegram <CODE>
+hermes pairing revoke telegram <USER_ID>
+hermes pairing clear-pending
+```
+
+Practical flow:
+- start the gateway
+- send the first message to the bot from Telegram
+- inspect pending or approved users with `hermes pairing list`
+- approve with the real pairing code shown to the user in Telegram, not with the `Code` column from `hermes pairing list`
+
+Important caveat in this Hermes version:
+- `hermes pairing list` shows only the first 8 hex characters of the stored hash so operators can distinguish pending entries
+- that displayed value is not the real pairing code and cannot be fed back into `hermes pairing approve`
+- if you need to approve manually, use the code the bot actually presented in Telegram
+
+## Polling Versus Webhook
+Polling is the default path in this Hermes version. Webhook mode is only enabled when `TELEGRAM_WEBHOOK_URL` is set.
+
+For this project, polling remains the baseline because:
+- no public inbound endpoint is required
+- it matches the architecture already recorded in [docs/ARCHITECTURE.md](/home/fabiano/AI/hermes-ops/docs/ARCHITECTURE.md)
+- it keeps the first operational surface smaller
+
+## First Stable Target
+The Telegram phase is considered stable when all of these are true:
+- `bash ~/AI/hermes-ops/scripts/check_telegram_gateway.sh` shows token configured and no accidental webhook mode
+- `hermes gateway run -v` starts without adapter errors
+- the operator can send a DM to the bot and receive a Hermes response
+- if manual approval is triggered, the operator can approve with the real Telegram pairing code and the user appears in the approved list
+
+Only after that should the project consider `hermes gateway install` or any always-on service workflow.

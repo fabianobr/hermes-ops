@@ -1,0 +1,51 @@
+===== Hermes Ops Prerequisites =====
+Sun Jun  7 13:27:32 -03 2026
+
+===== git =====
+/snap/codex/34/usr/bin/git
+git version 2.43.0
+
+===== curl =====
+FAILED: curl
+/bin/bash: line 11: curl: command not found
+
+===== docker =====
+FAILED: docker
+/bin/bash: line 15: docker: command not found
+
+===== docker compose =====
+/bin/bash: line 18: docker: command not found
+FAILED: docker compose
+
+===== python3 =====
+/usr/bin/python3
+Python 3.12.3
+
+===== pip =====
+FAILED: pip
+/bin/bash: line 26: pip: command not found
+
+===== node =====
+FAILED: node
+/bin/bash: line 30: node: command not found
+
+===== npm =====
+FAILED: npm
+/bin/bash: line 34: npm: command not found
+
+===== systemd =====
+/usr/bin/systemctl
+/bin/bash: line 38: /usr/bin/systemctl: Permission denied
+
+===== LM Studio local API =====
+/bin/bash: line 41: curl: command not found
+FAILED: LM Studio API
+
+===== Ollama CLI =====
+/bin/bash: line 44: ollama: command not found
+FAILED: ollama ls
+
+===== Ollama local API =====
+/bin/bash: line 47: curl: command not found
+FAILED: Ollama API
+

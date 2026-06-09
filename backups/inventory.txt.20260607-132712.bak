@@ -1,0 +1,72 @@
+===== Hermes Ops Inventory =====
+Sat Jun  6 08:24:08 -03 2026
+
+===== uname -a =====
+Linux llm5060 7.0.0-22-generic #22-Ubuntu SMP PREEMPT_DYNAMIC Mon May 25 15:54:34 UTC 2026 x86_64 GNU/Linux
+
+===== lsb_release -a =====
+Distributor ID:	Ubuntu
+Description:	Ubuntu 26.04 LTS
+Release:	26.04
+Codename:	resolute
+
+===== nvidia-smi =====
+NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.
+
+
+===== free -h =====
+               total        used        free      shared  buff/cache   available
+Mem:            29Gi       9.7Gi        11Gi       371Mi       9.8Gi        20Gi
+Swap:           35Gi          0B        35Gi
+
+===== df -h =====
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p5  719G  530G  154G  78% /
+tmpfs            15G     0   15G   0% /dev
+efivarfs        128K   73K   51K  59% /sys/firmware/efi/efivars
+tmpfs           6.0G  4.1M  6.0G   1% /run
+none            1.0M     0  1.0M   0% /run/credentials/systemd-journald.service
+none            1.0M     0  1.0M   0% /run/credentials/systemd-resolved.service
+tmpfs           3.0G  148K  3.0G   1% /run/user/1000
+tmpfs            15G   21M   15G   1% /tmp
+/dev/nvme0n1p1  196M   38M  159M  20% /boot/efi
+tmpfs            15G     0   15G   0% /tmp/.git
+tmpfs            15G     0   15G   0% /tmp/.agents
+tmpfs            15G     0   15G   0% /tmp/.codex
+tmpfs            15G     0   15G   0% /home/fabiano/AI/hermes-ops/.git
+tmpfs            15G     0   15G   0% /home/fabiano/AI/hermes-ops/.agents
+tmpfs            15G     0   15G   0% /home/fabiano/AI/hermes-ops/.codex
+
+===== uptime =====
+ 08:24:08 up 26 min,  1 user,  load average: 0.28, 0.27, 0.32
+
+===== systemctl status docker =====
+
+===== systemctl status ollama =====
+
+===== LM Studio models localhost:1234 =====
+
+===== Ollama tags localhost:11434 =====
+
+
+===== Ollama CLI retry 2026-06-06 =====
+Command: ollama ps
+Result: OK. Ollama CLI responded; no models currently loaded/running.
+
+===== Ollama CLI ls retry 2026-06-06 =====
+Command: ollama ls
+Result: OK. Local models detected:
+- qwen3:14b, 9.3 GB
+- deepseek-r1:32b, 19 GB
+- qwen3-coder:30b, 18 GB
+- qwen2.5vl:7b, 6.0 GB
+- qwen3:8b, 5.2 GB
+- phi:latest, 1.6 GB
+- tinyllama:latest, 637 MB
+- dengcao/Qwen3-14B:Q5_K_M, 10 GB
+- llama3.2-vision:latest, 7.8 GB
+- qwen3-coder:latest, 18 GB
+- llama3:latest, 4.7 GB
+- qwen2.5-coder:latest, 4.7 GB
+- deepseek-coder:latest, 776 MB
+- qwen3.5:latest, 6.6 GB
