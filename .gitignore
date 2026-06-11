@@ -13,3 +13,6 @@ logs/*
 .env.*
 *.env
 *.env.local
+
+# Local planning artifacts (may contain personal metadata).
+docs/superpowers/

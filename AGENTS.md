@@ -29,7 +29,7 @@ Use 4 spaces for Python and 2 spaces for shell/Compose/YAML indentation. Prefer 
 This repo does not currently include a test suite, so contributors should add lightweight validation with every change. For new automation, include a reproducible dry-run or verification command in the script header or related `docs/` note. Name future tests after the target behavior, for example `test_inventory_output.py`.
 
 ## Commit & Pull Request Guidelines
-Git history is not available in this workspace snapshot, so use short imperative commit subjects such as `Add Ollama health check script`. Keep commits scoped to one operational change. Pull requests should include:
+Use short imperative commit subjects such as `Add Ollama health check script`. Keep commits scoped to one operational change. Pull requests should include:
 
 - a clear summary of the operational problem and fix;
 - exact validation commands run;
