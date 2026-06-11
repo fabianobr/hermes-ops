@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+
+# Local captures and backups can include hostnames, user IDs, paths, service
+# topology, or secrets. Keep only placeholders/documentation in git.
+backups/*
+logs/*
+!backups/.gitkeep
+!logs/.gitkeep
+
+# Local secrets and environment files.
+.env
+.env.*
+*.env
+*.env.local
