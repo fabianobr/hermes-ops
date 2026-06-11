@@ -1,0 +1,11 @@
+# Merge into ~/.hermes/config.yaml on the host.
+# Validation:
+#   hermes config show | rg -n 'quick_commands|check-system|check_system'
+
+quick_commands:
+  check-system:
+    type: exec
+    command: bash ~/AI/hermes-ops/scripts/check_system_resources.sh
+  check_system:
+    type: exec
+    command: bash ~/AI/hermes-ops/scripts/check_system_resources.sh
