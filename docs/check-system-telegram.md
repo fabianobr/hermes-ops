@@ -29,11 +29,11 @@ hermes config set quick_commands.check_system.type exec
 hermes config set quick_commands.check_system.command 'bash ~/AI/hermes-ops/scripts/check_system_resources.sh'
 ```
 
-4. Install the skill into the host Hermes skills directory:
+4. Install the canonical skill file into the host Hermes skills directory:
 
 ```bash
 mkdir -p ~/.hermes/skills/devops/check-system
-cp ~/AI/hermes-ops/config/hermes-skills/check-system/SKILL.md ~/.hermes/skills/devops/check-system/SKILL.md
+install -m 600 ~/AI/hermes-ops/config/hermes-skills/check-system/SKILL.md ~/.hermes/skills/devops/check-system/SKILL.md
 ```
 
 5. Restart or reload the Hermes gateway after changing `quick_commands` or installed skills:
@@ -82,13 +82,24 @@ Host       llm5060
 Hora       2026-06-11 08:32:22 -03
 ```
 
+🎮 GPU / VRAM
+
+```text
+0: NVIDIA GeForce RTX 5060 Ti
+Uso GPU    7%
+VRAM       1154 / 16311 MiB
+Uso VRAM   7.1%
+Temp       47 C
+Power      11.77 / 180.00 W
+```
+
 ⚙️ CPU / RAM / Disco
 
 ```text
 CPU load   0.69, 1.29, 1.59
 CPU cores  12
 CPU uso    37.3%
-RAM        6.0Gi / 29Gi usados, 24Gi livre
+RAM        6.0Gi / 29Gi usados, 24Gi disponivel
 ```
 ````
 
@@ -101,3 +112,5 @@ RAM        6.0Gi / 29Gi usados, 24Gi livre
 - The skill remains useful for natural-language prompts, but the quick command is the reliable Telegram entrypoint.
 - HTML and Markdown tables are not used because Telegram does not render them as real tables.
 - Fenced `text` blocks are used to preserve spacing in a monospaced font.
+- Disk usage at or above 85% emits a deterministic warning from the script, including when the quick command bypasses the LLM.
+- Cleanup history belongs in `docs/`, not in the read-only runtime skill. See [disk-cleanup-homelab-ai.20260616.md](disk-cleanup-homelab-ai.20260616.md).
