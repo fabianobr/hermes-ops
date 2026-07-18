@@ -17,7 +17,7 @@ metadata:
 Report host GPU utilization, VRAM used/total and utilization, CPU, RAM, swap, disk, and high-memory processes through the fixed read-only script:
 
 ```bash
-bash /home/fabiano/AI/hermes-ops/scripts/check_system_resources.sh
+bash ~/AI/hermes-ops/scripts/check_system_resources.sh
 ```
 
 Exact `/check-system` and `/check_system` Telegram commands are configured as Hermes quick commands and return the script output without involving the LLM. Use this skill for natural-language requests that trigger the agent.
@@ -43,8 +43,8 @@ Exact `/check-system` and `/check_system` Telegram commands are configured as He
 Validate the canonical script with:
 
 ```bash
-bash -n /home/fabiano/AI/hermes-ops/scripts/check_system_resources.sh
-bash /home/fabiano/AI/hermes-ops/scripts/check_system_resources.sh
+bash -n ~/AI/hermes-ops/scripts/check_system_resources.sh
+bash ~/AI/hermes-ops/scripts/check_system_resources.sh
 ```
 
 The check is complete when the command exits zero and prints the host header, GPU utilization, VRAM used/total and utilization, CPU/RAM/disk data, and top processes. When NVIDIA telemetry is unavailable, it must print that limitation instead.

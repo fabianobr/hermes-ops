@@ -113,4 +113,4 @@ RAM        6.0Gi / 29Gi usados, 24Gi disponivel
 - HTML and Markdown tables are not used because Telegram does not render them as real tables.
 - Fenced `text` blocks are used to preserve spacing in a monospaced font.
 - Disk usage at or above 85% emits a deterministic warning from the script, including when the quick command bypasses the LLM.
-- Cleanup history belongs in `docs/`, not in the read-only runtime skill. See [disk-cleanup-homelab-ai.20260616.md](disk-cleanup-homelab-ai.20260616.md).
+- Host-specific cleanup history belongs in ignored local operator notes, not in the public repository or the read-only runtime skill.

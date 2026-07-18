@@ -108,7 +108,8 @@ print_resources() {
   cpu_usage="indisponivel"
 
   if command -v mpstat >/dev/null 2>&1; then
-    cpu_usage="$(mpstat 1 1 | awk '/Average:/ && $2 == "all" { printf "%.1f%%", 100 - $NF }')"
+    cpu_usage="$(LC_ALL=C mpstat 1 1 | awk '/Average:/ && $2 == "all" { printf "%.1f%%", 100 - $NF }')"
+    cpu_usage="${cpu_usage:-indisponivel}"
   fi
 
   if command -v free >/dev/null 2>&1; then
@@ -134,7 +135,7 @@ print_resources() {
   printf "%-10s %s\n" "Disco /" "${disk_summary}"
   close_block
 
-  if [ "${disk_used_percent}" -ge "${disk_alert_threshold}" ]; then
+  if [ "${disk_used_percent:-0}" -ge "${disk_alert_threshold}" ]; then
     print_section "⚠️ Pressao de Disco"
     printf "%-10s %s\n" "Disco /" "${disk_used_percent}% usado"
     printf "%-10s %s\n" "Acao" "investigacao somente leitura recomendada"
