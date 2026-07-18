@@ -1,0 +1,27 @@
+name: Shell validation
+
+on:
+  pull_request:
+    paths:
+      - scripts/check_system_resources.sh
+      - .github/workflows/shellcheck.yml
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/check_system_resources.sh
+      - .github/workflows/shellcheck.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check-system:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate Bash syntax
+        run: bash -n scripts/check_system_resources.sh
+      - name: Run ShellCheck
+        run: shellcheck scripts/check_system_resources.sh
