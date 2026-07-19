@@ -1,12 +1,12 @@
 ---
 name: check-system
-description: Use when the user asks /check-system, check-system, acione/execute/rode a habilidade check system, faca um check do sistema, status da maquina, status do host, resuma os gargalos do host, uso da GPU, uso da VRAM, CPU, RAM, memoria, carga, disco, temperatura da GPU, or host resource monitoring through Hermes or Telegram. Run the fixed read-only system resources script and return its concise operational report.
+description: Use when the user asks /check-system, check-system, acione/execute/rode a habilidade check system, faca um check do sistema, status da maquina, status do host, resuma os gargalos do host, modelos Ollama em execucao, ollama ps, uso da GPU, uso da VRAM, CPU, RAM, memoria, carga, disco, temperatura da GPU, or host resource monitoring through Hermes or Telegram. Run the fixed read-only system resources script and return its concise operational report.
 license: MIT
 metadata:
   hermes:
-    version: 1.2.1
+    version: 1.3.0
     author: hermes-ops
-    tags: [devops, monitoring, gpu, vram, cpu, ram, disk, telegram]
+    tags: [devops, monitoring, gpu, vram, cpu, ram, disk, ollama, telegram]
     related_skills: []
 ---
 
@@ -14,7 +14,7 @@ metadata:
 
 ## Overview
 
-Report host GPU utilization, VRAM used/total and utilization, CPU, RAM, swap, disk, and high-memory processes through the fixed read-only script:
+Report host GPU utilization, VRAM used/total and utilization, CPU, RAM, swap, disk, `ollama ps`, and high-memory processes through the fixed read-only script:
 
 ```bash
 bash ~/AI/hermes-ops/scripts/check_system_resources.sh
@@ -26,10 +26,10 @@ For a natural-language request, execute the canonical `bash` command above throu
 
 ## Workflow
 
-1. For natural-language requests, run only `bash ~/AI/hermes-ops/scripts/check_system_resources.sh` once. Complete this step only after it exits successfully and reports every available resource section, including GPU and VRAM utilization when NVIDIA telemetry is available.
+1. For natural-language requests, run only `bash ~/AI/hermes-ops/scripts/check_system_resources.sh` once. Complete this step only after it exits successfully and reports every available resource section, including GPU/VRAM utilization and `ollama ps` when those commands are available.
 2. Return the script output without inventing unavailable telemetry. Use Portuguese when the user writes in Portuguese.
 3. Keep the result compact and preserve fenced `text` blocks so columns remain aligned in Telegram.
-4. If GPU telemetry is unavailable, state that limitation and still return CPU, RAM, swap, disk, and process data.
+4. If GPU telemetry or `ollama ps` is unavailable, state that limitation and still return the remaining resource data.
 5. If the script emits a disk-pressure alert, offer a separate read-only investigation. Do not diagnose or delete files as part of this skill.
 
 ## Safety Rules
@@ -49,4 +49,4 @@ bash -n ~/AI/hermes-ops/scripts/check_system_resources.sh
 bash ~/AI/hermes-ops/scripts/check_system_resources.sh
 ```
 
-The check is complete when the command exits zero and prints the host header, GPU utilization, VRAM used/total and utilization, CPU/RAM/disk data, and top processes. When NVIDIA telemetry is unavailable, it must print that limitation instead.
+The check is complete when the command exits zero and prints the host header, GPU utilization, VRAM used/total and utilization, CPU/RAM/disk data, `ollama ps`, and top processes. When NVIDIA or Ollama telemetry is unavailable, it must print that limitation instead.

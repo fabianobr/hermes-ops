@@ -143,6 +143,43 @@ print_resources() {
   fi
 }
 
+print_ollama_status() {
+  print_section "🧠 Ollama em Execucao"
+
+  if ! command -v ollama >/dev/null 2>&1; then
+    printf "%-10s %s\n" "Ollama" "comando nao encontrado"
+    close_block
+    return
+  fi
+
+  if command -v timeout >/dev/null 2>&1; then
+    if ollama_output="$(timeout 5s ollama ps 2>&1)"; then
+      :
+    else
+      ollama_status=$?
+      printf "%-10s %s\n" "Ollama" "ollama ps falhou (status ${ollama_status})"
+      [ -n "${ollama_output}" ] && printf '%s\n' "${ollama_output}"
+      close_block
+      return
+    fi
+  elif ollama_output="$(ollama ps 2>&1)"; then
+    :
+  else
+    ollama_status=$?
+    printf "%-10s %s\n" "Ollama" "ollama ps falhou (status ${ollama_status})"
+    [ -n "${ollama_output}" ] && printf '%s\n' "${ollama_output}"
+    close_block
+    return
+  fi
+
+  if [ -n "${ollama_output}" ]; then
+    printf '%s\n' "${ollama_output}"
+  else
+    printf "%-10s %s\n" "Ollama" "ollama ps nao retornou dados"
+  fi
+  close_block
+}
+
 print_top_processes() {
   print_section "📦 Top Processos por RAM"
   printf "%-18s %7s %7s %7s %10s\n" "Processo" "PID" "CPU" "MEM" "RSS"
@@ -154,4 +191,5 @@ print_top_processes() {
 print_header_table
 print_nvidia_gpu
 print_resources
+print_ollama_status
 print_top_processes

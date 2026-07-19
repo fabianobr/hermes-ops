@@ -36,4 +36,4 @@ hermes plugins list --enabled --plain
 bash scripts/check_system_resources.sh
 ```
 
-Envie no Telegram um áudio como `Acione a habilidade check system e resuma os gargalos`. O gateway deve registrar o roteamento para `/check-system` e responder com o relatório em voz.
+Envie no Telegram um áudio como `Acione a habilidade check system e resuma os gargalos`. O gateway deve registrar o roteamento para `/check-system` e responder com o relatório, incluindo `ollama ps`, em voz.
