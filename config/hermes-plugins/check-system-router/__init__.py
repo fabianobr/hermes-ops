@@ -33,7 +33,7 @@ _CHECK_SYSTEM_PATTERNS = (
 _ACTION_PATTERN = re.compile(
     r"\b(?:acione|aciona|ative|ativa|execute|executa|rode|rodar|roda|faca|"
     r"fazer|verifique|verifica|cheque|use|mostre|mostra|resuma|resumir|"
-    r"qual|quero|preciso)\b"
+    r"utilizar|utilize|utiliza|qual|quero|preciso|agora)\b"
 )
 
 

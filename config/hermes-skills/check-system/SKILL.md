@@ -1,10 +1,10 @@
 ---
 name: check-system
-description: Use when the user asks /check-system, check-system, acione/execute/rode a habilidade check system, acione a habilidade de checar o sistema, faca um check do sistema, status da maquina, status do host, resuma os gargalos do host, modelos Ollama em execucao, ollama ps, uso da GPU, uso da VRAM, CPU, RAM, memoria, carga, disco, temperatura da GPU, or host resource monitoring through Hermes or Telegram. Run the fixed read-only system resources script and return its concise operational report.
+description: Use when the user asks /check-system, check-system, acione/execute/rode/utilize a habilidade check system, acione a habilidade de checar o sistema, faca um check do sistema, status da maquina, status do host, resuma os gargalos do host, modelos Ollama em execucao, ollama ps, uso da GPU, uso da VRAM, CPU, RAM, memoria, carga, disco, temperatura da GPU, or host resource monitoring through Hermes or Telegram. Run the fixed read-only system resources script and return its concise operational report.
 license: MIT
 metadata:
   hermes:
-    version: 1.3.1
+    version: 1.3.2
     author: hermes-ops
     tags: [devops, monitoring, gpu, vram, cpu, ram, disk, ollama, telegram]
     related_skills: []

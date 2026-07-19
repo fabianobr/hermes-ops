@@ -43,6 +43,7 @@ class CheckSystemRouterTests(unittest.TestCase):
         examples = (
             "Acione a habilidade check system e resuma os gargalos.",
             "Acione a habilidade de checar o sistema e me resuma os gargalos.",
+            "Utilizar a habilidade de checar o sistema agora.",
             "Faça um check-system agora.",
             "Qual o status do host?",
             "check_system",
