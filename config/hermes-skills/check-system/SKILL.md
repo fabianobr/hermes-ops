@@ -1,11 +1,11 @@
 ---
 name: check-system
-description: Use when the user asks /check-system, check-system, status da maquina, status do host, uso da GPU, uso da VRAM, CPU, RAM, memoria, carga, disco, temperatura da GPU, or host resource monitoring through Hermes or Telegram. Run the fixed read-only system resources script and return its concise operational report.
-version: 1.2.0
-author: hermes-ops
+description: Use when the user asks /check-system, check-system, acione/execute/rode a habilidade check system, faca um check do sistema, status da maquina, status do host, resuma os gargalos do host, uso da GPU, uso da VRAM, CPU, RAM, memoria, carga, disco, temperatura da GPU, or host resource monitoring through Hermes or Telegram. Run the fixed read-only system resources script and return its concise operational report.
 license: MIT
 metadata:
   hermes:
+    version: 1.2.1
+    author: hermes-ops
     tags: [devops, monitoring, gpu, vram, cpu, ram, disk, telegram]
     related_skills: []
 ---
@@ -22,9 +22,11 @@ bash ~/AI/hermes-ops/scripts/check_system_resources.sh
 
 Exact `/check-system` and `/check_system` Telegram commands are configured as Hermes quick commands and return the script output without involving the LLM. Use this skill for natural-language requests that trigger the agent.
 
+For a natural-language request, execute the canonical `bash` command above through the terminal tool. Never run bare `check_system`, `check-system`, `/check_system`, or `/check-system` as a shell command; those names are Telegram quick-command triggers, not executables.
+
 ## Workflow
 
-1. Run only the canonical script once. Complete this step only after it exits successfully and reports every available resource section, including GPU and VRAM utilization when NVIDIA telemetry is available.
+1. For natural-language requests, run only `bash ~/AI/hermes-ops/scripts/check_system_resources.sh` once. Complete this step only after it exits successfully and reports every available resource section, including GPU and VRAM utilization when NVIDIA telemetry is available.
 2. Return the script output without inventing unavailable telemetry. Use Portuguese when the user writes in Portuguese.
 3. Keep the result compact and preserve fenced `text` blocks so columns remain aligned in Telegram.
 4. If GPU telemetry is unavailable, state that limitation and still return CPU, RAM, swap, disk, and process data.
