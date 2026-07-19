@@ -42,6 +42,7 @@ class CheckSystemRouterTests(unittest.TestCase):
     def test_matches_operational_requests(self):
         examples = (
             "Acione a habilidade check system e resuma os gargalos.",
+            "Acione a habilidade de checar o sistema e me resuma os gargalos.",
             "Faça um check-system agora.",
             "Qual o status do host?",
             "check_system",

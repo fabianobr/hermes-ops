@@ -1,6 +1,6 @@
 manifest_version: 1
 name: check-system-router
-version: "0.1.0"
+version: "0.1.1"
 description: "Route natural-language check-system requests to the deterministic /check-system command before LLM dispatch."
 author: "hermes-ops"
 kind: standalone

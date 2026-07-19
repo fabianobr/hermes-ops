@@ -21,9 +21,11 @@ _CONCEPTUAL_PATTERNS = (
 )
 
 _CHECK_SYSTEM_PATTERNS = (
-    r"\b(?:skill|habilidade) (?:de )?check system\b",
+    r"\b(?:skill|habilidade) (?:de )?(?:check system|checar o sistema)\b",
     r"\bcheck system\b",
     r"\bcheck do sistema\b",
+    r"\bchecar o sistema\b",
+    r"\bcheque (?:o|do) sistema\b",
     r"\bchecagem do sistema\b",
     r"\bstatus (?:do|da) (?:host|sistema|servidor|maquina)\b",
 )
@@ -59,6 +61,7 @@ def is_check_system_request(text: str) -> bool:
     if normalized in {
         "check system",
         "check do sistema",
+        "checar o sistema",
         "checagem do sistema",
         "status do host",
         "status do sistema",
