@@ -96,6 +96,33 @@ class CheckSystemRouterTests(unittest.TestCase):
         gateway = SimpleNamespace(_is_user_authorized=lambda source: False)
         self.assertIsNone(ROUTER.route_check_system(event=event, gateway=gateway))
 
+    def test_registers_prioritized_telegram_menu_command(self):
+        hooks = []
+        commands = []
+        context = SimpleNamespace(
+            register_hook=lambda *args, **kwargs: hooks.append((args, kwargs)),
+            register_command=lambda *args, **kwargs: commands.append((args, kwargs)),
+        )
+
+        ROUTER.register(context)
+
+        self.assertEqual(
+            hooks,
+            [(("pre_gateway_dispatch", ROUTER.route_check_system), {})],
+        )
+        self.assertEqual(len(commands), 1)
+        args, kwargs = commands[0]
+        self.assertEqual(args, ("check-system", ROUTER.check_system_command_fallback))
+        self.assertEqual(
+            kwargs,
+            {"description": "Report host GPU, CPU, RAM, and disk."},
+        )
+
+    def test_menu_command_fallback_explains_missing_quick_command(self):
+        message = ROUTER.check_system_command_fallback("")
+        self.assertIn("/check_system", message)
+        self.assertIn("quick command", message)
+
 
 if __name__ == "__main__":
     unittest.main()
