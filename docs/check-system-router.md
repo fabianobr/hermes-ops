@@ -1,6 +1,6 @@
 # Check-system router
 
-O plugin `check-system-router` converte pedidos operacionais em linguagem natural para o comando determinístico `/check-system` antes do despacho ao modelo. Em áudio, o roteamento é limitado ao Telegram e só transcreve remetentes já autorizados pelo gateway.
+O plugin `check-system-router` converte pedidos operacionais em linguagem natural para o comando determinístico `/check-system` antes do despacho ao modelo. Ele também registra `check-system` como comando do plugin para que a forma válida `/check_system` fique na faixa prioritária do menu do Telegram, antes das skills sujeitas ao limite. O quick command continua tendo precedência e executa o script sem passar pelo LLM. Em áudio, o roteamento é limitado ao Telegram e só transcreve remetentes já autorizados pelo gateway.
 
 ## Instalação
 
@@ -12,6 +12,10 @@ hermes gateway restart
 ```
 
 Repita a cópia e o restart após atualizar o plugin versionado.
+
+O Telegram aceita apenas letras minúsculas, números e `_` em nomes de
+comandos publicados. Por isso o menu mostra `/check_system`, embora o plugin
+use internamente o nome canônico `check-system`.
 
 ## Áudio em português brasileiro
 
@@ -36,4 +40,7 @@ hermes plugins list --enabled --plain
 bash scripts/check_system_resources.sh
 ```
 
-Envie no Telegram um áudio como `Acione a habilidade check system e resuma os gargalos`. O gateway deve registrar o roteamento para `/check-system` e responder com o relatório, incluindo `ollama ps`, em voz.
+Confirme que `/check_system` aparece ao abrir o menu `/` do bot. Em seguida,
+selecione o comando ou envie um áudio como `Acione a habilidade check system e
+resuma os gargalos`. O gateway deve executar o quick command e responder com o
+relatório, incluindo `ollama ps`, em voz.

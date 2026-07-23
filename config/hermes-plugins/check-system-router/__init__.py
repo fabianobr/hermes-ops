@@ -10,6 +10,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+_MENU_COMMAND_DESCRIPTION = "Report host GPU, CPU, RAM, and disk."
+
 _CONCEPTUAL_PATTERNS = (
     r"\bo que e\b",
     r"\bo que significa\b",
@@ -134,5 +136,27 @@ def route_check_system(**kwargs: Any) -> dict[str, str] | None:
     return {"action": "rewrite", "text": "/check-system"}
 
 
+def check_system_command_fallback(raw_args: str) -> str:
+    """Explain the required quick command when its dispatch entry is missing.
+
+    Hermes dispatches configured quick commands before plugin commands. This
+    handler therefore runs only when the plugin is installed without the
+    corresponding quick command.
+    """
+    del raw_args
+    return (
+        "The /check_system menu entry requires the check-system quick command. "
+        "Install config/hermes-quick-commands.yaml.example and restart the gateway."
+    )
+
+
 def register(ctx: Any) -> None:
     ctx.register_hook("pre_gateway_dispatch", route_check_system)
+    # Plugin commands are placed ahead of capped skill entries in Telegram's
+    # menu. Telegram renders this hyphenated name as the valid /check_system
+    # form, while the configured quick command still handles execution first.
+    ctx.register_command(
+        "check-system",
+        check_system_command_fallback,
+        description=_MENU_COMMAND_DESCRIPTION,
+    )

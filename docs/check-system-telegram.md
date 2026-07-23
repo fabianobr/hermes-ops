@@ -48,11 +48,17 @@ hermes gateway restart
 /check-system
 ```
 
-Telegram-native command names usually prefer underscores, so keep this fallback available:
+O menu nativo do Telegram aceita apenas letras minúsculas, números e `_` nos
+nomes dos comandos. Por isso ele publica a forma:
 
 ```text
 /check_system
 ```
+
+O plugin `check-system-router` também registra o nome canônico
+`check-system`. O Hermes o publica como `/check_system` na faixa de comandos
+do plugin, antes das skills que podem ser ocultadas pelo limite do menu. Na
+execução, o quick command configurado acima mantém precedência.
 
 Natural-language prompts may work through the agent, but they are less deterministic than the quick command:
 
