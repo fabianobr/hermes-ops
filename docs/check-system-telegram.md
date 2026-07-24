@@ -113,6 +113,8 @@ RAM        6.0Gi / 29Gi usados, 24Gi disponivel
 
 - The script is read-only.
 - GPU telemetry currently targets NVIDIA through `nvidia-smi`.
+- The script resolves common absolute Ollama locations, including `/snap/bin/ollama`, because the gateway service may not include Snap commands in its `PATH`.
+- The Ollama section describes every active model with its name, ID, memory, CPU/GPU split, context length, and remaining loaded time; it reports explicitly when no model is loaded.
 - If `nvidia-smi` is unavailable, the response should still include CPU, RAM, disk, and process data.
 - The quick command treats `/check-system` as a request to run the fixed script, not as permission to execute arbitrary shell commands.
 - The skill remains useful for natural-language prompts, but the quick command is the reliable Telegram entrypoint.
