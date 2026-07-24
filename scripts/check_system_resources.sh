@@ -143,17 +143,85 @@ print_resources() {
   fi
 }
 
+describe_ollama_models() {
+  awk '
+    function trim(value) {
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      return value
+    }
+
+    NR == 1 {
+      id_column = index($0, "ID")
+      size_column = index($0, "SIZE")
+      processor_column = index($0, "PROCESSOR")
+      context_column = index($0, "CONTEXT")
+      until_column = index($0, "UNTIL")
+      header_valid = id_column > 1 &&
+        size_column > id_column &&
+        processor_column > size_column &&
+        context_column > processor_column &&
+        until_column > context_column
+      next
+    }
+
+    NF && header_valid {
+      model_count++
+      model_name[model_count] = trim(substr($0, 1, id_column - 1))
+      model_id[model_count] = trim(substr($0, id_column, size_column - id_column))
+      model_size[model_count] = trim(substr($0, size_column, processor_column - size_column))
+      model_processor[model_count] = trim(substr($0, processor_column, context_column - processor_column))
+      model_context[model_count] = trim(substr($0, context_column, until_column - context_column))
+      model_until[model_count] = trim(substr($0, until_column))
+    }
+
+    END {
+      if (!header_valid) {
+        exit 2
+      }
+
+      printf "%-10s %d\n", "Modelos", model_count
+      if (model_count == 0) {
+        printf "%-10s %s\n", "Estado", "nenhum modelo carregado"
+      }
+
+      for (model_index = 1; model_index <= model_count; model_index++) {
+        if (model_index > 1) {
+          print ""
+        }
+        printf "%-10s %s\n", "Modelo", model_name[model_index]
+        printf "%-10s %s\n", "ID", model_id[model_index]
+        printf "%-10s %s\n", "Memoria", model_size[model_index]
+        printf "%-10s %s\n", "CPU/GPU", model_processor[model_index]
+        printf "%-10s %s tokens\n", "Contexto", model_context[model_index]
+        printf "%-10s %s\n", "Ate", model_until[model_index]
+      }
+    }
+  '
+}
+
 print_ollama_status() {
   print_section "🧠 Ollama em Execucao"
 
-  if ! command -v ollama >/dev/null 2>&1; then
+  ollama_command="$(command -v ollama 2>/dev/null || true)"
+  if [ -z "${ollama_command}" ]; then
+    # systemd services commonly omit /snap/bin from PATH.
+    for ollama_candidate in /snap/bin/ollama /usr/local/bin/ollama /usr/bin/ollama; do
+      if [ -x "${ollama_candidate}" ]; then
+        ollama_command="${ollama_candidate}"
+        break
+      fi
+    done
+  fi
+
+  if [ -z "${ollama_command}" ]; then
     printf "%-10s %s\n" "Ollama" "comando nao encontrado"
     close_block
     return
   fi
 
   if command -v timeout >/dev/null 2>&1; then
-    if ollama_output="$(timeout 5s ollama ps 2>&1)"; then
+    if ollama_output="$(timeout 5s "${ollama_command}" ps 2>&1)"; then
       :
     else
       ollama_status=$?
@@ -162,7 +230,7 @@ print_ollama_status() {
       close_block
       return
     fi
-  elif ollama_output="$(ollama ps 2>&1)"; then
+  elif ollama_output="$("${ollama_command}" ps 2>&1)"; then
     :
   else
     ollama_status=$?
@@ -173,7 +241,12 @@ print_ollama_status() {
   fi
 
   if [ -n "${ollama_output}" ]; then
-    printf '%s\n' "${ollama_output}"
+    if ollama_description="$(printf '%s\n' "${ollama_output}" | describe_ollama_models)"; then
+      printf '%s\n' "${ollama_description}"
+    else
+      printf "%-10s %s\n" "Ollama" "formato de ollama ps nao reconhecido"
+      printf '%s\n' "${ollama_output}"
+    fi
   else
     printf "%-10s %s\n" "Ollama" "ollama ps nao retornou dados"
   fi
