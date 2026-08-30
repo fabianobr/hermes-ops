@@ -122,11 +122,11 @@ Acao       docker start comfyui
 Resultado  comando aceito
 ```
 
-⏳ Aguardando Saude
+⏳ Aguardando Resposta
 
 ```text
-Limite     90s
-Pronto     63s
+Limite     120s
+Pronto     6s
 ```
 
 📡 Estado Final
@@ -146,11 +146,13 @@ Endereco   http://127.0.0.1:8188
 
 ## Behavior
 
-- The script is idempotent. If the container is already running it reports that and starts nothing.
+- The script is idempotent. If the container is already running and answering, it reports that and starts nothing.
+- A container that is `running` but not answering is never restarted. The script waits for it and, if it stays that way, reports a failure instead of handing the operator a URL the service cannot back.
 - An existing stopped container is started with `docker start`.
 - A missing container falls back to `docker compose up -d --no-build` against `~/homelab-ai/infra/docker/docker-compose.yml` with the `media-pipeline` profile. `--no-build` keeps image builds an explicit operator decision instead of a long unattended build triggered from Telegram.
-- The script waits for the container health check and reports the elapsed time.
-- On failure it prints the final state plus the last 20 log lines and exits non-zero.
+- Readiness is `healthy` from Docker **or** a direct HTTP probe of `/system_stats`. The compose healthcheck only runs every 30s after a 60s start period, so polling the service directly is what keeps a normal cold start from being reported as a timeout.
+- Every Docker call is wrapped in `timeout`. A wedged daemon can accept the socket connection and never answer, which would otherwise hang the Telegram quick command with no output at all.
+- On failure it prints the final state plus the last 20 log lines and exits non-zero. The state it prints is the one the exit decision used, so the report cannot contradict itself.
 - It accepts no arguments, and rejects them with exit code 2.
 
 ## Configuration
@@ -163,8 +165,10 @@ All overrides are environment variables, so the Telegram command itself stays fi
 | `COMFYUI_COMPOSE_FILE` | `~/homelab-ai/infra/docker/docker-compose.yml` | Compose file used only when the container does not exist. |
 | `COMFYUI_COMPOSE_PROFILE` | `media-pipeline` | Compose profile that contains the service. |
 | `COMFYUI_COMPOSE_SERVICE` | `comfyui` | Compose service name. |
-| `COMFYUI_URL` | `http://127.0.0.1:8188` | Address reported back to the operator. |
-| `COMFYUI_START_TIMEOUT` | `90` | Seconds to wait for a healthy container. |
+| `COMFYUI_URL` | `http://127.0.0.1:8188` | Address probed for readiness and reported back to the operator. |
+| `COMFYUI_PROBE_PATH` | `/system_stats` | Path appended to `COMFYUI_URL` for the readiness probe. |
+| `COMFYUI_START_TIMEOUT` | `120` | Seconds to wait for the service to answer. |
+| `COMFYUI_POLL_INTERVAL` | `3` | Seconds between readiness polls. |
 
 ## Notes
 
@@ -174,5 +178,6 @@ All overrides are environment variables, so the Telegram command itself stays fi
 - The container previously died with exit code 137 under heavy workflows, so a start that never reaches `healthy` returns the recent log lines rather than a bare failure.
 - Voice messages are not routed to this command. Unlike the read-only check-system report, this one changes host state, so a transcription error must not be enough to start a GPU container.
 - Requests to stop, restart, or rebuild ComfyUI are deliberately not routed. They reach the agent, which requires explicit authorization.
-- Hermes also ships a bundled `comfyui` skill under `creative`, which drives ComfyUI through `comfy-cli`. The two do not collide on the routed phrasings, because `pre_gateway_dispatch` rewrites those to `/start-comfyui` before the LLM sees them. Phrasings the router does not match still reach the agent, where both skills are visible.
+- Hermes also ships a bundled `comfyui` skill under `creative`, which drives ComfyUI through `comfy-cli`. Because a rewrite bypasses the LLM entirely, the router has to stay out of that skill's territory: it ignores any message mentioning workflows, nodes, prompts, images, video, or generation, and it only accepts generic verbs such as "rode" when the message also names the skill, the command, or the container. "Quero rodar um workflow no ComfyUI" therefore reaches the agent intact.
+- Every router guard fails towards the agent, never towards the container. Negations (`não inicie o comfyui`), questions, stop/restart phrasings, and messages naming another service are all left for the LLM, which can still start ComfyUI after asking.
 - The gateway loads plugins, skills, and `quick_commands` at startup, so every change above needs a `systemctl --user restart hermes-gateway` (or `hermes gateway restart`) to take effect.

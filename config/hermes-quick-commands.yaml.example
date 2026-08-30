@@ -10,8 +10,8 @@ quick_commands:
   check_system:
     type: exec
     command: bash ~/AI/hermes-ops/scripts/check_system_resources.sh
-  # start-comfyui waits for the container health check, so it can take up to
-  # COMFYUI_START_TIMEOUT seconds (default 90) to answer in Telegram.
+  # start-comfyui waits for the service to answer, so it can take up to
+  # COMFYUI_START_TIMEOUT seconds (default 120) to reply in Telegram.
   start-comfyui:
     type: exec
     command: bash ~/AI/hermes-ops/scripts/start_comfyui.sh

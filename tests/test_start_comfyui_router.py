@@ -77,6 +77,62 @@ class StartComfyuiRouterTests(unittest.TestCase):
             with self.subTest(example=example):
                 self.assertFalse(ROUTER.is_start_comfyui_request(example))
 
+    def test_rejects_negated_requests(self):
+        # A rewrite bypasses the LLM, so a user declining to start the
+        # container must never end up starting it.
+        examples = (
+            "Não inicie o ComfyUI agora.",
+            "nao sobe o comfyui",
+            "Não precisa subir o comfyui.",
+            "Sobe o ollama, sem iniciar o comfyui.",
+        )
+        for example in examples:
+            with self.subTest(example=example):
+                self.assertFalse(ROUTER.is_start_comfyui_request(example))
+
+    def test_rejects_questions_that_merely_contain_a_start_verb(self):
+        examples = (
+            "Explicar como iniciar o comfyui.",
+            "Depois que eu subir o comfyui, o que faço?",
+            "Por que o comfyui não sobe?",
+            "Como funciona o start do comfyui?",
+        )
+        for example in examples:
+            with self.subTest(example=example):
+                self.assertFalse(ROUTER.is_start_comfyui_request(example))
+
+    def test_rejects_generation_work_owned_by_the_bundled_skill(self):
+        # Hermes ships a bundled comfyui skill for workflows. Rewriting these
+        # would discard the request instead of serving it.
+        examples = (
+            "Quero rodar um workflow no ComfyUI.",
+            "Abre a interface do comfyui pra mim.",
+            "Usa o comfyui pra gerar uma imagem.",
+            "Executa esse fluxo no comfyui.",
+        )
+        for example in examples:
+            with self.subTest(example=example):
+                self.assertFalse(ROUTER.is_start_comfyui_request(example))
+
+    def test_rejects_multi_service_requests(self):
+        # Routing would silently drop the half this command cannot serve.
+        examples = (
+            "sobe o comfyui e o ollama",
+            "Inicie o comfyui e o n8n, por favor.",
+        )
+        for example in examples:
+            with self.subTest(example=example):
+                self.assertFalse(ROUTER.is_start_comfyui_request(example))
+
+    def test_generic_verbs_need_an_explicit_target(self):
+        self.assertTrue(
+            ROUTER.is_start_comfyui_request("Acione a habilidade start comfyui.")
+        )
+        self.assertTrue(
+            ROUTER.is_start_comfyui_request("Rode o container do comfyui.")
+        )
+        self.assertFalse(ROUTER.is_start_comfyui_request("Roda o comfyui aí."))
+
     def test_accepts_start_verb_after_the_preposition_para(self):
         self.assertTrue(
             ROUTER.is_start_comfyui_request("Use a skill para iniciar o comfyui.")

@@ -4,7 +4,7 @@ description: Use when the user asks /start-comfyui, start comfyui, acione/execut
 license: MIT
 metadata:
   hermes:
-    version: 1.0.0
+    version: 1.1.0
     author: hermes-ops
     tags: [devops, docker, comfyui, gpu, vram, telegram]
     related_skills: [check-system]
@@ -20,7 +20,7 @@ Bring the local ComfyUI container up and report its final state through the fixe
 bash ~/AI/hermes-ops/scripts/start_comfyui.sh
 ```
 
-The script is idempotent: if the container is already running it reports that and starts nothing. It starts an existing stopped container with `docker start`, and falls back to `docker compose up -d --no-build` only when the container does not exist yet. It never builds images, never stops or removes containers, and accepts no arguments.
+The script is idempotent: if the container is already running and answering it reports that and starts nothing. A container that is running but not answering is waited out, never restarted, and reported as a failure if it stays that way. It starts an existing stopped container with `docker start`, and falls back to `docker compose up -d --no-build` only when the container does not exist yet. It never builds images, never stops or removes containers, and accepts no arguments.
 
 Exact `/start-comfyui` and `/start_comfyui` Telegram commands are configured as Hermes quick commands and return the script output without involving the LLM. Use this skill for natural-language requests that trigger the agent.
 
@@ -29,11 +29,12 @@ For a natural-language request, execute the canonical `bash` command above throu
 ## Workflow
 
 1. For natural-language requests, run only `bash ~/AI/hermes-ops/scripts/start_comfyui.sh` once. Do not run it again while the previous run is still waiting for the health check.
-2. Return the script output without inventing state the script did not report. Use Portuguese when the user writes in Portuguese.
-3. Keep the result compact and preserve fenced `text` blocks so columns remain aligned in Telegram.
-4. When the script exits successfully, include the service address it printed so the user can open the interface.
-5. When the script fails, return the log lines it printed and stop. Diagnosis and remediation are a separate task requiring explicit user authorization.
-6. The GPU is shared with Ollama on this host. If the script reports low free VRAM, relay that warning instead of retrying the start.
+2. Return the script output without inventing state the script did not report. A non-zero exit is a failure even when the container shows as `running`.
+3. Use Portuguese when the user writes in Portuguese.
+4. Keep the result compact and preserve fenced `text` blocks so columns remain aligned in Telegram.
+5. When the script exits successfully, include the service address it printed so the user can open the interface.
+6. When the script fails, return the log lines it printed and stop. Diagnosis and remediation are a separate task requiring explicit user authorization.
+7. The GPU is shared with Ollama on this host. If the script reports low free VRAM, relay that warning instead of retrying the start.
 
 ## Safety Rules
 
@@ -46,12 +47,13 @@ For a natural-language request, execute the canonical `bash` command above throu
 
 ## Verification
 
-Validate the canonical script with:
+Validate the canonical script without starting anything:
 
 ```bash
 bash -n ~/AI/hermes-ops/scripts/start_comfyui.sh
-python3 -m unittest tests.test_start_comfyui
-bash ~/AI/hermes-ops/scripts/start_comfyui.sh
+cd ~/AI/hermes-ops && python3 -m unittest tests.test_start_comfyui
 ```
 
-The check is complete when the command prints the header, the start action taken, the final container status and health, and either the service address on success or the recent log lines on failure. When Docker is unavailable or its daemon is unreachable, it must print that limitation and exit non-zero instead.
+Both commands are read-only. Running `bash ~/AI/hermes-ops/scripts/start_comfyui.sh` is the skill itself, not a verification step: it starts the container, so run it only when the user actually asked for that.
+
+A run is complete when the output contains the header, the start action taken, the final container status and health, and either the service address on success or the recent log lines on failure. When Docker is unavailable or its daemon is unreachable, it must print that limitation and exit non-zero instead.

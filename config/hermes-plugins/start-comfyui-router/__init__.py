@@ -12,15 +12,22 @@ logger = logging.getLogger(__name__)
 
 _MENU_COMMAND_DESCRIPTION = "Start the local ComfyUI container."
 
+# Every guard below fails towards the agent, never towards the container: an
+# unmatched request still reaches the LLM, which can start ComfyUI after asking.
+# A false positive is the expensive direction, because the rewrite bypasses the
+# LLM entirely and starts a GPU container without anyone in the loop.
+
 _CONCEPTUAL_PATTERNS = (
-    r"\bo que e\b",
-    r"\bo que significa\b",
-    r"\bcomo funciona\b",
-    r"\bexplique\b",
-    r"\bexplica\b",
-    r"\bdocumentacao\b",
+    r"\bo que\b",
+    r"\bcomo (?:funciona|faco|posso|uso|usar|seria)\b",
+    r"\bexplic\w*\b",
+    r"\bdocumenta\w*\b",
     r"\bqual (?:e )?a finalidade\b",
+    r"\bdepois que\b",
+    r"\bpor que\b",
 )
+
+_NEGATION_PATTERN = re.compile(r"\b(?:nao|nunca|jamais|sem|nem)\b")
 
 # Requests that ask for the opposite action, or for a restart, must reach the
 # agent instead of a start-only script. Bare "para" is excluded on purpose: in
@@ -31,17 +38,44 @@ _OPPOSITE_ACTION_PATTERN = re.compile(
     r"remover|reinicie|reinicia|reiniciar|restart|rebuild)\b"
 )
 
+# Hermes ships a bundled "comfyui" skill that runs workflows through comfy-cli.
+# Anything that smells like generation work belongs to that skill, so it must
+# reach the agent with the request intact instead of being rewritten away.
+_CREATIVE_TASK_PATTERN = re.compile(
+    r"\b(?:workflow\w*|fluxo\w*|node|nodes|imagem|imagens|video|videos|audio|"
+    r"prompt\w*|gera|gere|gerar|gerando|render\w*|checkpoint\w*|lora|loras|"
+    r"modelo|modelos|interface|api)\b"
+)
+
+# A message naming another service is a multi-target request. Routing it would
+# silently discard the half this command cannot serve.
+_OTHER_SERVICE_PATTERN = re.compile(
+    r"\b(?:ollama|lm studio|lmstudio|open webui|openwebui|n8n|litellm|"
+    r"searxng|whisper|docker)\b"
+)
+
 _COMFYUI_PATTERNS = (
     r"\bcomfy ?ui\b",
     r"\bconfy ?ui\b",
     r"\bcomfy\b",
 )
 
+# Verbs that can only mean "bring the container up".
 _START_PATTERN = re.compile(
     r"\b(?:inicie|inicia|iniciar|sobe|suba|subir|liga|ligue|ligar|levante|"
-    r"levanta|levantar|ative|ativa|ativar|start|starta|startar|acione|aciona|"
-    r"acionar|execute|executa|executar|rode|roda|rodar|abre|abra|abrir|"
-    r"disponibilize|disponibiliza)\b"
+    r"levanta|levantar|ative|ativa|ativar|start|starta|startar)\b"
+)
+
+# Generic verbs such as "rode" mean "run a workflow" as often as they mean
+# "start the container", so they only count when the message also names the
+# skill or the container itself.
+_GENERIC_VERB_PATTERN = re.compile(
+    r"\b(?:acione|aciona|acionar|execute|executa|executar|rode|roda|rodar|"
+    r"use|usa|usar|utilize|utiliza|utilizar|chame|chama|chamar)\b"
+)
+
+_EXPLICIT_TARGET_PATTERN = re.compile(
+    r"\b(?:skill|habilidade|comando|container|containner|conteiner)\b"
 )
 
 
@@ -58,15 +92,9 @@ def mentions_comfyui(normalized: str) -> bool:
 
 
 def is_start_comfyui_request(text: str) -> bool:
-    """Return True only for explicit requests to start ComfyUI."""
+    """Return True only for unambiguous requests to start the container."""
     normalized = normalize_request(text)
     if not normalized:
-        return False
-
-    if any(re.search(pattern, normalized) for pattern in _CONCEPTUAL_PATTERNS):
-        return False
-
-    if _OPPOSITE_ACTION_PATTERN.search(normalized):
         return False
 
     if not mentions_comfyui(normalized):
@@ -75,9 +103,25 @@ def is_start_comfyui_request(text: str) -> bool:
     if normalized in {"start comfyui", "start comfy ui", "comfyui start"}:
         return True
 
-    # Starting a container is a write action, so require an explicit verb
-    # rather than any mention of ComfyUI.
-    return bool(_START_PATTERN.search(normalized))
+    for pattern in (
+        _NEGATION_PATTERN,
+        _OPPOSITE_ACTION_PATTERN,
+        _CREATIVE_TASK_PATTERN,
+        _OTHER_SERVICE_PATTERN,
+    ):
+        if pattern.search(normalized):
+            return False
+
+    if any(re.search(pattern, normalized) for pattern in _CONCEPTUAL_PATTERNS):
+        return False
+
+    if _START_PATTERN.search(normalized):
+        return True
+
+    return bool(
+        _GENERIC_VERB_PATTERN.search(normalized)
+        and _EXPLICIT_TARGET_PATTERN.search(normalized)
+    )
 
 
 def _message_type_value(event: Any) -> str:
@@ -94,7 +138,7 @@ def _platform_value(event: Any) -> str:
 def route_start_comfyui(**kwargs: Any) -> dict[str, str] | None:
     """Rewrite matching text requests to /start-comfyui.
 
-    Voice messages are deliberately not routed here. Unlike the read-only
+    Voice messages are deliberately not routed. Unlike the read-only
     check-system report, this command changes host state, so a transcription
     error must not be enough to start a GPU container.
     """
