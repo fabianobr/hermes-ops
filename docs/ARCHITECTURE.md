@@ -18,6 +18,7 @@ Deploy Hermes Agent as an operator for the local AI stack, with direct access to
 - No webhook exposure in the initial setup.
 - Secrets stored only in `.env`/Hermes auth files, never in repository docs.
 - Future automation should stay inside `~/AI/hermes-ops/scripts/` and default to read-only or dry-run behavior.
+- The one exception today is `scripts/start_comfyui.sh`, which may start the named ComfyUI container. It takes no arguments and cannot stop, remove, rebuild, or prune anything.
 
 ## Renderable Diagram
 ```mermaid
@@ -50,7 +51,7 @@ flowchart LR
     HC <-->|run bounded ops scripts| HW
     HC <-->|local API| LM
     HC <-->|local API| OL
-    HC -. optional checks .-> CF
+    HC -. optional checks / bounded start .-> CF
     HC -->|diagnostics / monitoring| GPU
     HC -->|diagnostics / monitoring| MEM
     HC -->|diagnostics / monitoring| DSK

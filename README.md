@@ -2,13 +2,13 @@
 
 Operations workspace for running [Hermes Agent](https://hermes-agent.nousresearch.com/) as an operator for a local AI stack (Ollama / LM Studio), with localhost-only integrations and a Telegram gateway in polling mode.
 
-This is not a packaged application. It is a set of runbooks, config templates, and small read-only scripts that make the host setup reproducible without storing any secrets in git.
+This is not a packaged application. It is a set of runbooks, config templates, and small bounded scripts that make the host setup reproducible without storing any secrets in git.
 
 ## Layout
 
 - `docs/` - runbooks and architecture notes. Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/reproducibility-status.md](docs/reproducibility-status.md).
 - `config/` - secret-free templates to merge into `~/.hermes/` on the host.
-- `scripts/` - validation and diagnostic helpers (read-only by design).
+- `scripts/` - validation and diagnostic helpers. Read-only by default; the only write action is [scripts/start_comfyui.sh](scripts/start_comfyui.sh), which starts one named container and nothing else.
 - `logs/`, `backups/` - local-only artifacts, ignored by git.
 
 ## Quick start

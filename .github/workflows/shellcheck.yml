@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - scripts/check_system_resources.sh
+      - scripts/start_comfyui.sh
       - .github/workflows/shellcheck.yml
   push:
     branches:
       - main
     paths:
       - scripts/check_system_resources.sh
+      - scripts/start_comfyui.sh
       - .github/workflows/shellcheck.yml
 
 permissions:
@@ -22,6 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Validate Bash syntax
-        run: bash -n scripts/check_system_resources.sh
+        run: bash -n scripts/check_system_resources.sh scripts/start_comfyui.sh
       - name: Run ShellCheck
-        run: shellcheck scripts/check_system_resources.sh
+        run: shellcheck scripts/check_system_resources.sh scripts/start_comfyui.sh
