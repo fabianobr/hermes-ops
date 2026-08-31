@@ -1,0 +1,8 @@
+manifest_version: 1
+name: start-comfyui-router
+version: "0.2.0"
+description: "Expose and route deterministic start-comfyui requests before LLM dispatch."
+author: "hermes-ops"
+kind: standalone
+provides_hooks:
+  - pre_gateway_dispatch
