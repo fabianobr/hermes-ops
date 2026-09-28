@@ -25,10 +25,11 @@ fi
 
 case "${ollama_api_url}" in
   http://*|https://*) ;;
-  *)
+  *://*)
     printf 'OLLAMA_HOST must use an http:// or https:// URL\n' >&2
     exit 2
     ;;
+  *) ollama_api_url="http://${ollama_api_url}" ;;
 esac
 
 ollama_api_url="${ollama_api_url%/}"

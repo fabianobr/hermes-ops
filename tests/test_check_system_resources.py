@@ -66,6 +66,22 @@ class CheckSystemResourcesTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("model:latest", result.stdout)
 
+    def test_accepts_ollama_host_without_scheme(self):
+        payload = json.dumps({"models": []})
+        result = self.run_script(
+            {
+                "curl": (
+                    "for argument do url=$argument; done\n"
+                    "test \"$url\" = 'http://ollama.test:11434/api/ps' || exit 9\n"
+                    f"printf '%s' '{payload}'\n"
+                )
+            },
+            OLLAMA_HOST="ollama.test:11434",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("NAME", result.stdout)
+
     def test_rejects_non_http_ollama_host(self):
         result = self.run_script(OLLAMA_HOST="file:///etc/passwd")
 
