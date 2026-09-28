@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Verification:
+#   bash -n scripts/check_system_resources.sh
 #   bash scripts/check_system_resources.sh
 #   CHECK_SYSTEM_DISK_ALERT_THRESHOLD=0 bash scripts/check_system_resources.sh
 
@@ -8,6 +9,7 @@ set -eu
 hostname_value="$(hostname 2>/dev/null || printf 'unknown')"
 timestamp="$(date '+%Y-%m-%d %H:%M:%S %Z')"
 disk_alert_threshold="${CHECK_SYSTEM_DISK_ALERT_THRESHOLD:-85}"
+ollama_api_url="${OLLAMA_HOST:-http://127.0.0.1:11434}"
 
 case "${disk_alert_threshold}" in
   ''|*[!0-9]*)
@@ -20,6 +22,17 @@ if [ "${disk_alert_threshold}" -gt 100 ]; then
   printf 'CHECK_SYSTEM_DISK_ALERT_THRESHOLD must be an integer from 0 to 100\n' >&2
   exit 2
 fi
+
+case "${ollama_api_url}" in
+  http://*|https://*) ;;
+  *://*)
+    printf 'OLLAMA_HOST must use an http:// or https:// URL\n' >&2
+    exit 2
+    ;;
+  *) ollama_api_url="http://${ollama_api_url}" ;;
+esac
+
+ollama_api_url="${ollama_api_url%/}"
 
 bytes_to_gib() {
   awk -v bytes="$1" 'BEGIN { printf "%.1f GiB", bytes / 1024 / 1024 / 1024 }'
@@ -143,36 +156,78 @@ print_resources() {
   fi
 }
 
+fetch_ollama_api() {
+  command -v curl >/dev/null 2>&1 || return 1
+
+  if command -v timeout >/dev/null 2>&1; then
+    timeout 5s curl --fail --silent --show-error --max-time 4 --max-filesize 1048576 \
+      "${ollama_api_url}/api/ps" 2>/dev/null
+  else
+    curl --fail --silent --show-error --max-time 4 --max-filesize 1048576 \
+      "${ollama_api_url}/api/ps" 2>/dev/null
+  fi
+}
+
+format_ollama_api() {
+  python3 -c '
+import json
+import sys
+
+try:
+    payload = json.load(sys.stdin)
+except (json.JSONDecodeError, UnicodeDecodeError):
+    raise SystemExit(1)
+
+models = payload.get("models")
+if not isinstance(models, list):
+    raise SystemExit(1)
+
+print("{:<36} {:>10} {:>12}".format("NAME", "SIZE", "PROCESSOR"))
+for model in models:
+    if not isinstance(model, dict):
+        continue
+    raw_name = str(model.get("name", "unknown"))
+    name = "".join(character if character.isprintable() else "?" for character in raw_name)[:36]
+    size = model.get("size", 0)
+    size_text = f"{size / 1024**3:.1f} GiB" if isinstance(size, (int, float)) else "unknown"
+    size_vram = model.get("size_vram", 0)
+    if isinstance(size, (int, float)) and size > 0 and isinstance(size_vram, (int, float)):
+        processor = f"{round(size_vram / size * 100)}% GPU"
+    else:
+        processor = "unknown"
+    print(f"{name:<36} {size_text:>10} {processor:>12}")
+' 2>/dev/null
+}
+
 print_ollama_status() {
   print_section "🧠 Ollama em Execucao"
 
+  api_output="$(fetch_ollama_api || true)"
+  if [ -n "${api_output}" ] && command -v python3 >/dev/null 2>&1; then
+    formatted_output="$(printf '%s' "${api_output}" | format_ollama_api || true)"
+    if [ -n "${formatted_output}" ]; then
+      printf '%s\n' "${formatted_output}"
+      close_block
+      return
+    fi
+  fi
+
   if ! command -v ollama >/dev/null 2>&1; then
-    printf "%-10s %s\n" "Ollama" "comando nao encontrado"
+    printf "%-10s %s\n" "Ollama" "API indisponivel e comando ollama nao encontrado"
     close_block
     return
   fi
 
   if command -v timeout >/dev/null 2>&1; then
-    if ollama_output="$(timeout 5s ollama ps 2>&1)"; then
-      :
-    else
-      ollama_status=$?
-      printf "%-10s %s\n" "Ollama" "ollama ps falhou (status ${ollama_status})"
-      [ -n "${ollama_output}" ] && printf '%s\n' "${ollama_output}"
-      close_block
-      return
-    fi
-  elif ollama_output="$(ollama ps 2>&1)"; then
-    :
+    ollama_output="$(timeout 5s ollama ps 2>&1)" || ollama_status=$?
   else
-    ollama_status=$?
-    printf "%-10s %s\n" "Ollama" "ollama ps falhou (status ${ollama_status})"
-    [ -n "${ollama_output}" ] && printf '%s\n' "${ollama_output}"
-    close_block
-    return
+    ollama_output="$(ollama ps 2>&1)" || ollama_status=$?
   fi
 
-  if [ -n "${ollama_output}" ]; then
+  if [ "${ollama_status:-0}" -ne 0 ]; then
+    printf "%-10s %s\n" "Ollama" "API e ollama ps falharam (status ${ollama_status})"
+    [ -n "${ollama_output}" ] && printf '%s\n' "${ollama_output}"
+  elif [ -n "${ollama_output}" ]; then
     printf '%s\n' "${ollama_output}"
   else
     printf "%-10s %s\n" "Ollama" "ollama ps nao retornou dados"
