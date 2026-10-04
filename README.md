@@ -13,6 +13,8 @@ This is not a packaged application. It is a set of runbooks, config templates, a
 
 ## Quick start
 
+For the NVIDIA hosted API assessment, see [Estudo NVIDIA gratuito](docs/nvidia-free-study.20261004.md).
+
 ```bash
 python3 scripts/check_local_backends.py        # validate Ollama / LM Studio endpoints
 python3 scripts/list_ollama_models.py          # list local models and context windows
